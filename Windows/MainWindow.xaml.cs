@@ -331,17 +331,40 @@ namespace PlexampRPC {
         }
 
         private async Task<string> GetThumbnail(SessionData session) {
-            string? path = !string.IsNullOrWhiteSpace(session.ArtPath) ? session.ArtPath : session.AlbumArtPath;
-            if (string.IsNullOrWhiteSpace(path)) {
+            string[] paths = new[] { session.ArtPath, session.AlbumArtPath }
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Select(path => path!)
+                .Distinct()
+                .ToArray();
+            if (paths.Length == 0) {
                 Console.WriteLine("WARN: No track or album thumbnail was provided by Plex");
                 return DefaultArt;
             }
 
             try {
-                Uri address = SelectedAddress ?? throw new InvalidOperationException("No Plex server address is selected");
-                string cacheFile = Path.Combine(Path.GetDirectoryName(Config.FilePath)!, "cache.json");
-                return await artworkService.GetThumbnailAsync(address, SelectedResource?.AccessToken, path,
-                    session.Album, Config.Settings.ArtResolution, cacheFile);
+                for (int i = 0; i < paths.Length; i++) {
+                    try {
+                        if (!string.IsNullOrWhiteSpace(Config.Settings.ArtworkProxyUrl))
+                            return await artworkService.GetProxyThumbnailAsync(Config.Settings.ArtworkProxyUrl,
+                                Config.Settings.ArtworkProxyKey, paths[i], Config.Settings.ArtResolution);
+
+                        Uri address = SelectedAddress ?? throw new InvalidOperationException("No Plex server address is selected");
+                        string cacheFile = Path.Combine(Path.GetDirectoryName(Config.FilePath)!, "cache.json");
+                        return await artworkService.GetThumbnailAsync(address, SelectedResource?.AccessToken, paths[i],
+                            session.Album, Config.Settings.ArtResolution, cacheFile);
+                    }
+                    catch (HttpRequestException e) when (i + 1 < paths.Length &&
+                        (e.StatusCode == System.Net.HttpStatusCode.NotFound || e.StatusCode == System.Net.HttpStatusCode.Gone ||
+                        (!string.IsNullOrWhiteSpace(Config.Settings.ArtworkProxyUrl) && e.StatusCode == System.Net.HttpStatusCode.BadGateway))) {
+                        Console.WriteLine("WARN: Track thumbnail is unavailable; trying the album thumbnail");
+                    }
+                    catch (InvalidDataException) when (i + 1 < paths.Length &&
+                        !string.IsNullOrWhiteSpace(Config.Settings.ArtworkProxyUrl) &&
+                        !Shared.ArtworkProxySignature.IsValidPath(paths[i])) {
+                        Console.WriteLine("WARN: Track thumbnail path is unsupported; trying the album thumbnail");
+                    }
+                }
+                throw new InvalidOperationException("No usable thumbnail was provided by Plex");
             }
             catch (Exception e) {
                 Console.WriteLine($"WARN: Unable to retrieve or upload thumbnail for current session, using Plex Icon instead\n{e.Message}");

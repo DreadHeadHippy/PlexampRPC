@@ -37,6 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="ArtworkProxy\**\*.cs" />
+    <Compile Remove="Tests\**\*.cs" />
     <Folder Include="Themes\" />
   </ItemGroup>
 

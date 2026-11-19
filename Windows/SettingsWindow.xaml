@@ -30,6 +30,11 @@
                         <TextBox DockPanel.Dock="Right" Margin="0 4 0 0" Width="40" HorizontalAlignment="Right" Text="{Binding Path=(local:Config.ArtResolution), Mode=TwoWay}"/>
                     </DockPanel>
 
+                    <TextBlock Text="Artwork Proxy URL:" Foreground="#CCCCCC" Margin="0 6 0 0"/>
+                    <TextBox Text="{Binding Path=(local:Config.ArtworkProxyUrl), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="Public HTTPS URL of your artwork proxy; leave empty to use the image host"/>
+                    <TextBlock Text="Artwork Proxy Key:" Foreground="#CCCCCC" Margin="0 4 0 0"/>
+                    <PasswordBox x:Name="ArtworkProxyKeyBox" ToolTip="Shared proxy key; stored in the local config file"/>
+
                     <CheckBox x:Name="CheckUpdatesCheckBox" Margin="0 2 0 0" Content="Check for Updates" IsChecked="{Binding Path=(local:Config.UpdateChecker), Mode=TwoWay}" ToolTip="Checks Github for Updates"/>
 
                     <CheckBox x:Name="StartupCheckBox" Margin="0 0 0 0" Content="Start on Startup" IsChecked="False" ToolTip="Start PlexampRPC when Windows starts"/>

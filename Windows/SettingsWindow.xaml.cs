@@ -21,6 +21,8 @@ namespace PlexampRPC {
             SetupListeningTo();
             SetupStatusDisplayType();
             SetupStatusDisplayTypeNames();
+            ArtworkProxyKeyBox.Password = Config.Settings.ArtworkProxyKey;
+            ArtworkProxyKeyBox.PasswordChanged += (_, _) => Config.Settings.ArtworkProxyKey = ArtworkProxyKeyBox.Password;
 
             MouseDown += (_, _) => FocusManager.SetFocusedElement(this, this);
 

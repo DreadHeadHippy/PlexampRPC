@@ -42,6 +42,8 @@ namespace PlexampRPC
 
         public string PlexAddress { get; set; } = string.Empty;
         public string StatusDisplayType { get; set; } = "Name";
+        public string ArtworkProxyUrl { get; set; } = string.Empty;
+        public string ArtworkProxyKey { get; set; } = string.Empty;
     }
 
 
